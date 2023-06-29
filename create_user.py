@@ -1,37 +1,52 @@
 import mysql.connector
+import logging
+from dotenv import load_dotenv
+import os
 
-def create_jasper_user(username, password, database):
+
+def create_jasper_consulta(username, password, database):
+    conn=None
+    load_dotenv()
+    host = os.getenv("DATABASE_HOST")
+    user = os.getenv("DATABASE_USER")
+    password = os.getenv("DATABASE_PASSWORD")
+    logging.basicConfig(filename='log_create_user_consulta.txt', level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
+     
     try:
-        # Conexión a la base de datos MySQL
+            
+       # Conexión a la base de datos MySQL
         conn = mysql.connector.connect(
-            host="localhost",
-            user="tu_usuario",
-            password="tu_contraseña",
-            database="nombre_basedatos"
+            host=host,
+            user=user,
+            password=password            
         )
+        print("Conexión Exitosa")
         
         # Crear un cursor
         cursor = conn.cursor()
-        
-        # Crear usuario y otorgarle privilegios
+       
+         # Crear usuario y otorgarle privilegios
         cursor.execute(f"CREATE USER '{username}'@'localhost' IDENTIFIED BY '{password}';")
         cursor.execute(f"GRANT SELECT ON {database}.* TO '{username}'@'localhost';")
         cursor.execute("FLUSH PRIVILEGES;")
         
-        # Confirmar los cambios
+        # # Confirmar los cambios
         conn.commit()
+
+        logging.info(f"El usuario '{username}' ha sido creado y tiene permisos de consulta en la base de datos '{database}'.")
         
         print(f"El usuario '{username}' ha sido creado y tiene permisos de consulta en la base de datos '{database}'.")
     
-    except mysql.connector.Error as error:
-        print("Error al conectar a la base de datos MySQL:", error)
-    
+    except mysql.connector.Error as error:        
+        print("Error al conectar a la base de datos:", error)    
+        logging.error(f"Error con base de datos: {error}")
+
     finally:
         # Cerrar la conexión
         if conn.is_connected():
             cursor.close()
             conn.close()
-            print("Conexión a la base de datos MySQL cerrada.")
+            print("Conexión a la base de datos cerrada.")
 
-# Ejemplo de uso
-create_jasper_user("jasper_user", "jasper_password", "nombre_basedatos")
+# 
+create_jasper_consulta("prueba_user", "Jasper@123", "dev_api_backend_fe")
